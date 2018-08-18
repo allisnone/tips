@@ -1,0 +1,7 @@
+set global wait_timeout=604800;
+set global interactive_timeout=604800;
+set global max_allowed_packet=1024*1024*16;
+
+
+insert into subacc (id,category,accid,prime) values(1,'dapan',1,'601009');
+insert into stock.category (rate,describtion) values(0,'duanxian');

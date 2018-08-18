@@ -1,0 +1,130 @@
+安装docker
+
+yum install docker
+systemctl enable docker 
+systemctl start docker 
+systemctl status docker
+
+安装docker-compose：
+curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+docker-compose --version
+
+
+创建目录
+mkdir docker
+cd docker
+mdkir db
+
+生成配置文件：
++++++++++++++++++++++++++++++++++++++++++	
+requirements.txt	
++++++++++++++++++++++++++++++++++++++++++
+django==1.7.5
+MySQL-python
+
+
++++++++++++++++++++++++++++++++++++++++++
+Dockerfile: 包含创建镜像所需要的全部指令。在项目根目录下创建Dockerfile文件，其内容如下
++++++++++++++++++++++++++++++++++++++++++
+
+FROM python:2.7
+ENV PYTHONUNBUFFERED 1
+RUN mkdir /code
+RUN mkdir /code/db
+WORKDIR /code
+ADD ./requirements.txt /code/
+RUN pip install -r requirements.txt
+ADD . /code/
+
+
++++++++++++++++++++++++++++++++++++++++++
+docker-compose.yml
++++++++++++++++++++++++++++++++++++++++++
+
+db:
+  image: mysql
+  expose:
+    - "3306"
+  volumes:
+    - ./db:/var/lib/mysql:rw
+  environment:
+    - MYSQL_DATABASE=mysitedb
+    - MYSQL_ROOT_PASSWORD=11111111  
+web:
+  build: .
+  command: python ./manage.py runserver 0.0.0.0:8000
+  volumes:
+    - .:/code:rw
+  ports:
+    - "8000:8000"
+  links:
+    - db
+
+
+编译docker-compose：
+
+docker-compose build
+
+创建django项目：mysite--项目名字
+docker-compose  run web django-admin.py startproject mysite 	
+
+
+修改setting.py文件：
+
+ALLOWED_HOSTS = ['*',]
+...
+
+DATABASES = {
+'default': {
+    'ENGINE': 'django.db.backends.mysql',
+    'NAME': 'mysitedb',
+    'USER': 'root',
+    'PASSWORD': '11111111',
+    'HOST': 'db',
+    'PORT': 3306,
+}
+}
+
+同步数据库，并修改数据库user（解决：ERROR 2059 (HY000): Authentication plugin 'caching_sha2_password' cannot be load）
+docker-compose up
+docker-compose run web python ./manage.py  migrate
+docker ps
+docker exec -it docker_db_1 /bin/bash
+
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '11111111';
+
+重新build：
+docker-compose down
+docker-compose build
+docker-compose up
+
+访问web验证：
+
+http://172.18.0.104:8000/
+
+
+添加APP：
+docker-compose run web python manage.py startapp [app_label]
+
+
+参考：
+https://www.centos.bz/2017/09/%E4%BD%BF%E7%94%A8docker%E6%9E%84%E5%BB%BA%E9%83%A8%E7%BD%B2djangomysql%E9%A1%B9%E7%9B%AEdocker-compose/
+
+https://blog.csdn.net/weixin_40907382/article/details/79024110
+
+
+django:
+
+https://blog.csdn.net/lsysafe/article/details/80105592
+https://www.jianshu.com/p/bd0af02e59ba
+
+
+delete app:
+https://blog.csdn.net/huochen1994/article/details/52680067
+
+about manager.py:
+https://blog.csdn.net/xiaoxinyu316/article/details/46414379
+
+
+https://www.cnblogs.com/jiangshanduojiao/p/9034511.html

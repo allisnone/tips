@@ -1,0 +1,54 @@
+python
+
+
+
+python C:\Users\Administrator\tradeStrategy\update_hist_and_db.py
+python C:\Users\Administrator\tradeStrategy\recent_extreme_test.py
+python C:\Users\Administrator\tradeStrategy\mini_atr_test.py
+
+
+python C:\Users\Administrator\pytrade\pyautotrade.pyw
+
+python C:\Users\Administrator\tradeStrategy\test_00.py
+
+
+mysql -uemsadmin -p
+
+use stock;
+alter table madata add mini_atr_r double not NULL default 0.0;
+
+select code,ct_o_ma5_num,o_ma10_rate,reversal,extreme from madata where date>="2015-12-14" order by reversal desc limit 100;
+
+select a.code,a.ct_o_ma5_num,a.o_ma10_rate,a.reversal,a.extreme,b.atr_in_rate from madata as a,mini_atr as b where a.date>="2015-12-18" and a.code=b.code order by a.reversal desc limit 100;
+
+select a.code,a.ct_o_ma5_num,a.o_ma10_rate,a.reversal,a.extreme,b.atr_in_rate from madata as a,mini_atr as b where a.date>="2015-12-18" and a.code=b.code and a.extreme!=0 order by a.reversal desc limit 100;
+
+select * from mini_atr;
+
+
+back trade testa;
+
+python C:\Users\Administrator\pytrade\myBackTest_test.py 2015/07/11 0
+
+update history data:
+python C:\Users\Administrator\pytrade\update_history_k_data.py
+python C:\Users\Administrator\easyquant\test.py
+
+python C:\Users\Administrator\pytrade\myBackTest_test.py 2015/07/11 0 easyhistory
+
+从YH历史数据回测：
+python C:\Users\Administrator\pytrade\myBackTest_test.py 2015/08/30 0 yh
+
+
+手动更新YH历史数据步骤:
+1 下载银河数据
+2 导出沪深A股数据
+3 导出精选指数
+
+4.预处理YH数据:  python position_update.py YH
+
+5 从YH更新指数数据到 /hist/day/data: python position_update.py index
+
+6 从YH更新基金数据到 /hist/day/data： python position_update.py fund
+
+6 从web更新股票数据到 /hist/day/data： python position_update.py stock
